@@ -39,29 +39,19 @@ df_hora
 df_hora_treino = df_hora.iloc[:-767]
 df_hora_teste = df_hora.iloc[-767:]
 
-# dataframe total:
 df_hora
 
-# dataframe de treino:
 df_hora_treino
 
-# dataframe de teste:
 df_hora_teste
 
-# modelo A
-
-# Instanciar e ajustar o modelo A
 modelo_A = Prophet(growth='linear', seasonality_mode='additive')
 modelo_A.fit(df_hora_treino)
 
-# Criar um DataFrame para as datas futuras
 futuro_A = modelo_A.make_future_dataframe(periods=801, freq='1H')
 
-# Fazer previsões para o futuro
 previsao_A = modelo_A.predict(futuro_A)
 
-# Calcular métricas
-# Calcular métricas
 mae_A = metrics.mean_absolute_error(df_hora_teste['y'].values, previsao_A.loc[previsao_A['ds'].isin(df_hora_teste['ds']), 'yhat'].values)
 rmse_A = metrics.mean_squared_error(df_hora_teste['y'].values, previsao_A.loc[previsao_A['ds'].isin(df_hora_teste['ds']), 'yhat'].values, squared=False)
 mape_A = np.mean(np.abs((df_hora_teste['y'].values - previsao_A.loc[previsao_A['ds'].isin(df_hora_teste['ds']), 'yhat'].values) / df_hora_teste['y'].values)) * 100
@@ -74,8 +64,6 @@ smape_A = np.mean(2 * np.abs(df_hora_teste['y'].values - previsao_A.loc[previsao
 pmse_A = np.mean(np.square((df_hora_teste['y'].values - previsao_A.loc[previsao_A['ds'].isin(df_hora_teste['ds']), 'yhat'].values) / df_hora_teste['y'].values)) * 100
 mmape_A = np.mean(np.abs((df_hora_teste['y'].values - previsao_A.loc[previsao_A['ds'].isin(df_hora_teste['ds']), 'yhat'].values) / (df_hora_teste['y'].values + previsao_A.loc[previsao_A['ds'].isin(df_hora_teste['ds']), 'yhat'].values) / 2)) * 100
 
-
-# Imprimir métricas
 print('Modelo A:')
 print('MAE: {}'.format(mae_A))
 print('RMSE: {}'.format(rmse_A))
@@ -89,19 +77,13 @@ print('SMAPE: {}%'.format(smape_A))
 print('PMSE: {}%'.format(pmse_A))
 print('MMAPE: {}%'.format(mmape_A))
 
-# modelo B
-
-# Instanciar e ajustar o modelo B
 modelo_B = Prophet(growth='linear', seasonality_mode='multiplicative')
 modelo_B.fit(df_hora_treino)
 
-# Criar um DataFrame para as datas futuras
 futuro_B = modelo_B.make_future_dataframe(periods=801, freq='1H')
 
-# Fazer previsões para o futuro
 previsao_B = modelo_B.predict(futuro_B)
 
-# Calcular métricas
 mae_B = metrics.mean_absolute_error(df_hora_teste['y'].values, previsao_B.loc[previsao_B['ds'].isin(df_hora_teste['ds']), 'yhat'].values)
 rmse_B = metrics.mean_squared_error(df_hora_teste['y'].values, previsao_B.loc[previsao_B['ds'].isin(df_hora_teste['ds']), 'yhat'].values, squared=False)
 mape_B = np.mean(np.abs((df_hora_teste['y'].values - previsao_B.loc[previsao_B['ds'].isin(df_hora_teste['ds']), 'yhat'].values) / df_hora_teste['y'].values)) * 100
@@ -114,7 +96,6 @@ smape_B = np.mean(2 * np.abs(df_hora_teste['y'].values - previsao_B.loc[previsao
 pmse_B = np.mean(np.square((df_hora_teste['y'].values - previsao_B.loc[previsao_B['ds'].isin(df_hora_teste['ds']), 'yhat'].values) / df_hora_teste['y'].values)) * 100
 mmape_B = np.mean(np.abs((df_hora_teste['y'].values - previsao_B.loc[previsao_B['ds'].isin(df_hora_teste['ds']), 'yhat'].values) / (df_hora_teste['y'].values + previsao_B.loc[previsao_B['ds'].isin(df_hora_teste['ds']), 'yhat'].values) / 2)) * 100
 
-# Imprimir métricas
 print('Modelo B:')
 print('MAE: {}'.format(mae_B))
 print('RMSE: {}'.format(rmse_B))
@@ -135,18 +116,14 @@ previsao_B [['ds', 'yhat']]
 previsao_B['yhat'] = previsao_B['yhat'].round(1)
 previsao_A['yhat'] = previsao_A['yhat'].round(1)
 
-# Renomear colunas yhat
 previsao_A.rename(columns={'yhat': 'yhat_PROPHET_A'}, inplace=True)
 previsao_B.rename(columns={'yhat': 'yhat_PROPHET_B'}, inplace=True)
 
-# Merge dos dataframes
 resultado_merge = df_hora_teste.merge(previsao_A[['ds', 'yhat_PROPHET_A']], on='ds', how='left')
 resultado_merge = resultado_merge.merge(previsao_B[['ds', 'yhat_PROPHET_B']], on='ds', how='left')
 
-# Exibindo o resultado
 print(resultado_merge)
 
-# Arredondar os valores das métricas para 2 casas decimais
 metricas_arredondadas = {
     'MAE': [round(mae_A, 2), round(mae_B, 2)],
     'RMSE': [round(rmse_A, 2), round(rmse_B, 2)],
@@ -161,13 +138,10 @@ metricas_arredondadas = {
     'MMAPE (%)': [round(mmape_A, 2), round(mmape_B, 2)]
 }
 
-# Criar um DataFrame a partir do dicionário com as métricas arredondadas
 tabela_metricas_arredondadas = pd.DataFrame(metricas_arredondadas, index=['Modelo A', 'Modelo B'])
 
-# Pivot da tabela de métricas arredondadas
 tabela_metricas_pivot = tabela_metricas_arredondadas.transpose()
 
-# Imprimir a tabela pivot
 print(tabela_metricas_pivot)
 
 df_hora.set_index('ds')['y'].plot(color='blue')
